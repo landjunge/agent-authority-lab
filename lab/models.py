@@ -6,6 +6,10 @@ from typing import Any
 PROTECTED_PATH = "config/security-policy.json"
 WRITE_ACTIONS = frozenset({"file.write"})
 DELETE_ACTIONS = frozenset({"file.delete"})
+# I8 frozen mutating-verb set. Not a global action taxonomy.
+MUTATING_ACTIONS = frozenset(
+    {"file.write", "file.delete", "file.remove", "file.rename", "file.unlink"}
+)
 NETWORK_ACTIONS = frozenset({"net.connect"})
 DELEGATE_ACTIONS = frozenset({"delegate"})
 IRREVERSIBLE_ACTIONS = frozenset({"repo.delete", "release.publish"})
@@ -17,6 +21,7 @@ I4_DELEGATION_DEPTH = "I4_DELEGATION_DEPTH"
 I5_NETWORK = "I5_NETWORK"
 I6_IRREVERSIBLE = "I6_IRREVERSIBLE"
 I7_SECURITY_TEST_DELETE = "I7_SECURITY_TEST_DELETE"
+I8_PROTECTED_MUTATION = "I8_PROTECTED_MUTATION"
 
 MAX_ACTIONS = 100
 MAX_UNIQUE_FILES = 10

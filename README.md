@@ -83,3 +83,12 @@ Additive. Frozen v0.2 is unchanged. See `docs/PROTOTYPE-v0.3.md`.
 
 - Path aliases (`./`, `..`, `//`) collapse before I2/I3.
 - **I7:** `file.delete` of `tests/test_security.py` or anything under `tests/security/` needs `approval_token`.
+
+## v0.4 (I8 — mutation completeness)
+
+Additive. Frozen v0.2 and v0.3 are unchanged. See `docs/PROTOTYPE-v0.4.md`.
+
+- Mutating verbs on the protected policy other than `file.write` are DENY (I8). I3 is not relaxed.
+- Mutating verbs on security-test artifacts other than `file.delete` need `approval_token` (I8).
+- I7 identity matcher is the v0.3 list only (no filename heuristic).
+- Not in this slice: global default-deny, I2-on-delete, adapter key canonicalization.

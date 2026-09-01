@@ -8,11 +8,13 @@ from lab.models import (
     I5_NETWORK,
     I6_IRREVERSIBLE,
     I7_SECURITY_TEST_DELETE,
+    I8_PROTECTED_MUTATION,
     DELETE_ACTIONS,
     IRREVERSIBLE_ACTIONS,
     MAX_ACTIONS,
     MAX_DELEGATION_DEPTH,
     MAX_UNIQUE_FILES,
+    MUTATING_ACTIONS,
     PROTECTED_PATH,
     WRITE_ACTIONS,
     ActionRequest,
@@ -49,5 +51,20 @@ def evaluate(req: ActionRequest, predicted: WorkflowState) -> list[str]:
         and not req.parameters.get("approval_token")
     ):
         violated.append(I7_SECURITY_TEST_DELETE)
+
+    if req.action in MUTATING_ACTIONS:
+        policy = is_protected_path(req.resource, PROTECTED_PATH)
+        security_test = is_security_test_path(req.resource)
+        if policy and req.action not in WRITE_ACTIONS:
+            # I3 remains write-only in its deny_reason. Other verbs → I8.
+            # No token override: I3 is not relaxed.
+            violated.append(I8_PROTECTED_MUTATION)
+        elif (
+            security_test
+            and req.action not in DELETE_ACTIONS
+            and not req.parameters.get("approval_token")
+        ):
+            # I7 remains delete-only in its deny_reason. Other verbs → I8.
+            violated.append(I8_PROTECTED_MUTATION)
 
     return violated

@@ -22,13 +22,8 @@ def is_protected_path(raw: str, protected: str) -> bool:
 
 
 def is_security_test_path(raw: str) -> bool:
+    """v0.3 identities only: tests/test_security.py or anything under tests/security/."""
     c = canonical_path(raw)
-    if not c:
-        return False
-    parts = c.split("/")
-    if parts[0] != "tests":
-        return False
-    if any(p == "security" for p in parts[:-1]):
+    if c == "tests/test_security.py":
         return True
-    name = parts[-1]
-    return name.startswith("test_") and "security" in name
+    return c == "tests/security" or c.startswith("tests/security/")
