@@ -5,6 +5,7 @@ from lab.models import (
     I3_PROTECTED_PATH,
     I7_SECURITY_TEST_DELETE,
     I8_PROTECTED_MUTATION,
+    I9_UNKNOWN_ACTION_PROTECTED,
     MUTATING_ACTIONS,
     ActionRequest,
 )
@@ -159,9 +160,21 @@ def test_false_positive_paths_are_not_i8_or_i7():
         assert d_w.allow is True, path
 
 
-def test_unknown_non_mutating_on_protected_is_out_of_scope():
-    """I8 is not global default-deny."""
+def test_unknown_actions_are_outside_i8_vocabulary():
+    """I8 owns the frozen mutating-verb set only (NOT_APPLICABLE to unknown verbs).
+
+    v0.4 encoded that scope as final ALLOW (`assert d.allow is True`). That
+    documented 'I8 does not deny', not a permanent right to run unknown
+    actions on protected identities. I9 may still DENY. See ADR-001.
+    """
     d = Lab().submit(ActionRequest("A", "repo.destroy", SEC_TEST, {}, "wf-i8-unk"))
-    assert d.allow is True
+    assert d.deny_reason != I8_PROTECTED_MUTATION
+    assert I8_PROTECTED_MUTATION not in d.violated_invariants
+    if not d.allow:
+        assert d.deny_reason == I9_UNKNOWN_ACTION_PROTECTED
+
     d2 = Lab().submit(ActionRequest("A", "shell.exec", POLICY, {}, "wf-i8-unk2"))
-    assert d2.allow is True
+    assert d2.deny_reason != I8_PROTECTED_MUTATION
+    assert I8_PROTECTED_MUTATION not in d2.violated_invariants
+    if not d2.allow:
+        assert d2.deny_reason == I9_UNKNOWN_ACTION_PROTECTED
