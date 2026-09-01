@@ -92,3 +92,12 @@ Additive. Frozen v0.2 and v0.3 are unchanged. See `docs/PROTOTYPE-v0.4.md`.
 - Mutating verbs on security-test artifacts other than `file.delete` need `approval_token` (I8).
 - I7 identity matcher is the v0.3 list only (no filename heuristic).
 - Not in this slice: global default-deny, I2-on-delete, adapter key canonicalization.
+
+## v0.5 (I9 — unknown action on protected identity)
+
+Additive. Frozen v0.2–v0.4 are unchanged. See `docs/PROTOTYPE-v0.5-I9.md`.
+
+- Unknown action string + protected canonical identity → DENY `I9_UNKNOWN_ACTION_PROTECTED`.
+- Exact known/safe vocabulary only. No case folding, no alias interpretation, no LLM.
+- I9 does not globally deny unknown actions on ordinary resources.
+- `approval_token` does not authorize an unknown policy action.

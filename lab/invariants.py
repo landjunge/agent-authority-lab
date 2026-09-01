@@ -9,8 +9,10 @@ from lab.models import (
     I6_IRREVERSIBLE,
     I7_SECURITY_TEST_DELETE,
     I8_PROTECTED_MUTATION,
+    I9_UNKNOWN_ACTION_PROTECTED,
     DELETE_ACTIONS,
     IRREVERSIBLE_ACTIONS,
+    KNOWN_ACTIONS,
     MAX_ACTIONS,
     MAX_DELEGATION_DEPTH,
     MAX_UNIQUE_FILES,
@@ -66,5 +68,12 @@ def evaluate(req: ActionRequest, predicted: WorkflowState) -> list[str]:
         ):
             # I7 remains delete-only in its deny_reason. Other verbs → I8.
             violated.append(I8_PROTECTED_MUTATION)
+
+    if req.action not in KNOWN_ACTIONS and (
+        is_protected_path(req.resource, PROTECTED_PATH)
+        or is_security_test_path(req.resource)
+    ):
+        # Fail closed at the protected boundary. Do not interpret the verb.
+        violated.append(I9_UNKNOWN_ACTION_PROTECTED)
 
     return violated

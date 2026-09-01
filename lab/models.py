@@ -13,6 +13,21 @@ MUTATING_ACTIONS = frozenset(
 NETWORK_ACTIONS = frozenset({"net.connect"})
 DELEGATE_ACTIONS = frozenset({"delegate"})
 IRREVERSIBLE_ACTIONS = frozenset({"repo.delete", "release.publish"})
+# I9: exact known/safe vocabulary. No case folding. Not a blacklist of aliases.
+KNOWN_ACTIONS = frozenset(
+    {
+        "file.read",
+        "file.write",
+        "file.delete",
+        "file.remove",
+        "file.rename",
+        "file.unlink",
+        "delegate",
+        "net.connect",
+        "repo.delete",
+        "release.publish",
+    }
+)
 
 I1_ACTION_BUDGET = "I1_ACTION_BUDGET"
 I2_FILE_LIMIT = "I2_FILE_LIMIT"
@@ -22,6 +37,7 @@ I5_NETWORK = "I5_NETWORK"
 I6_IRREVERSIBLE = "I6_IRREVERSIBLE"
 I7_SECURITY_TEST_DELETE = "I7_SECURITY_TEST_DELETE"
 I8_PROTECTED_MUTATION = "I8_PROTECTED_MUTATION"
+I9_UNKNOWN_ACTION_PROTECTED = "I9_UNKNOWN_ACTION_PROTECTED"
 
 MAX_ACTIONS = 100
 MAX_UNIQUE_FILES = 10
