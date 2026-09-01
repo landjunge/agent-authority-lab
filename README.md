@@ -110,3 +110,10 @@ Does not amend Phase 1. No LLM. Two labels only (`PUBLIC` / `SENSITIVE`).
 
 A/B: authority-only lets the READ→TRANSFER→EGRESS composition succeed; authority+IFC denies SENSITIVE external egress while PUBLIC egress by B remains ALLOW.
 
+## Phase 2 (Experiment 02 — Communication Gate)
+
+Additive. Frozen spec: `docs/PHASE2-EXPERIMENT-02-COMMUNICATION-GATE.md`. Experiment 01 is unchanged.
+
+Cross-agent transfer is `A → Communication Gate → B`. The gate evaluates metadata only (`evaluate_transfer`). No payload, tools, credentials, or policy writes.
+
+
