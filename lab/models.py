@@ -5,6 +5,7 @@ from typing import Any
 
 PROTECTED_PATH = "config/security-policy.json"
 WRITE_ACTIONS = frozenset({"file.write"})
+DELETE_ACTIONS = frozenset({"file.delete"})
 NETWORK_ACTIONS = frozenset({"net.connect"})
 DELEGATE_ACTIONS = frozenset({"delegate"})
 IRREVERSIBLE_ACTIONS = frozenset({"repo.delete", "release.publish"})
@@ -15,6 +16,7 @@ I3_PROTECTED_PATH = "I3_PROTECTED_PATH"
 I4_DELEGATION_DEPTH = "I4_DELEGATION_DEPTH"
 I5_NETWORK = "I5_NETWORK"
 I6_IRREVERSIBLE = "I6_IRREVERSIBLE"
+I7_SECURITY_TEST_DELETE = "I7_SECURITY_TEST_DELETE"
 
 MAX_ACTIONS = 100
 MAX_UNIQUE_FILES = 10

@@ -28,6 +28,19 @@ class FakeAdapter:
             ActionRequest(actor, "file.read", path, {}, workflow_id)
         )
 
+    def delete(
+        self, actor: str, path: str, workflow_id: str, approval_token: Any = None
+    ) -> Decision:
+        params: dict[str, Any] = {}
+        if approval_token is not None:
+            params["approval_token"] = approval_token
+        d = self.lab.submit(
+            ActionRequest(actor, "file.delete", path, params, workflow_id)
+        )
+        if d.allow:
+            self.repo.files.pop(path, None)
+        return d
+
     def delegate(self, actor: str, to: str, workflow_id: str) -> Decision:
         return self.lab.submit(
             ActionRequest(actor, "delegate", to, {"to": to}, workflow_id)

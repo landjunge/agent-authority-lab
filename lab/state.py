@@ -8,6 +8,7 @@ from lab.models import (
     ActionRequest,
     WorkflowState,
 )
+from lab.paths import canonical_path
 
 
 def empty_state(workflow_id: str) -> WorkflowState:
@@ -23,7 +24,7 @@ def predict_next(state: WorkflowState, req: ActionRequest) -> WorkflowState:
         nxt.actor_depth[req.actor] = 0
 
     if req.action in WRITE_ACTIONS:
-        nxt.touched_paths.add(req.resource)
+        nxt.touched_paths.add(canonical_path(req.resource) or req.resource)
         nxt.files_changed = len(nxt.touched_paths)
 
     if req.action in NETWORK_ACTIONS:

@@ -7,6 +7,8 @@ from lab.models import (
     I4_DELEGATION_DEPTH,
     I5_NETWORK,
     I6_IRREVERSIBLE,
+    I7_SECURITY_TEST_DELETE,
+    DELETE_ACTIONS,
     IRREVERSIBLE_ACTIONS,
     MAX_ACTIONS,
     MAX_DELEGATION_DEPTH,
@@ -16,6 +18,7 @@ from lab.models import (
     ActionRequest,
     WorkflowState,
 )
+from lab.paths import is_protected_path, is_security_test_path
 
 
 def evaluate(req: ActionRequest, predicted: WorkflowState) -> list[str]:
@@ -28,7 +31,7 @@ def evaluate(req: ActionRequest, predicted: WorkflowState) -> list[str]:
     if predicted.files_changed > MAX_UNIQUE_FILES:
         violated.append(I2_FILE_LIMIT)
 
-    if req.action in WRITE_ACTIONS and req.resource == PROTECTED_PATH:
+    if req.action in WRITE_ACTIONS and is_protected_path(req.resource, PROTECTED_PATH):
         violated.append(I3_PROTECTED_PATH)
 
     if predicted.delegation_depth > MAX_DELEGATION_DEPTH:
@@ -39,5 +42,12 @@ def evaluate(req: ActionRequest, predicted: WorkflowState) -> list[str]:
 
     if req.action in IRREVERSIBLE_ACTIONS and not req.parameters.get("approval_token"):
         violated.append(I6_IRREVERSIBLE)
+
+    if (
+        req.action in DELETE_ACTIONS
+        and is_security_test_path(req.resource)
+        and not req.parameters.get("approval_token")
+    ):
+        violated.append(I7_SECURITY_TEST_DELETE)
 
     return violated

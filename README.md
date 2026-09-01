@@ -76,3 +76,10 @@ python3.12 -m venv .venv
 - that Biscuit, Cedar, or FIDES would help (not integrated)
 
 A STOP result on the research hypothesis is valid.
+
+## v0.3 (canonical artifact identity)
+
+Additive. Frozen v0.2 is unchanged. See `docs/PROTOTYPE-v0.3.md`.
+
+- Path aliases (`./`, `..`, `//`) collapse before I2/I3.
+- **I7:** `file.delete` of `tests/test_security.py` or anything under `tests/security/` needs `approval_token`.
