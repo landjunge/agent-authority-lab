@@ -1,12 +1,36 @@
 # Agent Authority Lab
 
-Experimental security lab for testing whether **Least Authority + Information Flow Control + Stateful Invariant Enforcement** provides measurable protection beyond action-level authorization alone.
+Experimental security lab: can **deterministic workflow-level state and information-flow enforcement** stop **some modeled** composition attacks that per-action authorization misses?
+
+This is **not** a production system and **not** a proof of general agent safety.
 
 ## Status
 
-**Specification frozen at Prototype v0.2. No production implementation yet.**
+The original v0.2 specification remains frozen. Subsequent additive experiments are separately frozen and reviewed. They do not rewrite v0.2.
 
-The lab is intentionally separate from 4AllPass. It uses no real credentials, no production systems, and no real secrets.
+| Layer | What | Notes |
+|---|---|---|
+| Phase 1 | v0.2–v0.5/I9 composition monitor | Completed experimental slices |
+| Phase 2 Exp 01 | Explicit IFC vs authority-only | Hypothesis SUPPORTED *inside the fake lab* |
+| Phase 2 Exp 02 | Communication Gate | Hypothesis SUPPORTED *inside the fake lab* |
+| Phase 2 Exp 03 | Modeled implicit / control-flow dependency | Hypothesis SUPPORTED *inside modeled control dependencies* |
+
+Latest verified suite (Experiment 03 review, commit `ae1721d` / review `f2dcf8e`): **118 passed / 0 failed**, two identical `pytest -q` runs.
+
+**PASS ≠ SUPPORTED.** Green tests are spec conformance in this fake world. See [docs/RESEARCH-METHOD.md](docs/RESEARCH-METHOD.md).
+
+The lab is separate from 4AllPass. No real credentials, production systems, or secrets.
+
+## Method (canonical)
+
+- [docs/RESEARCH-METHOD.md](docs/RESEARCH-METHOD.md) — PASS vs hypothesis, STOP, review levels
+- [docs/THREAT-MODEL.md](docs/THREAT-MODEL.md)
+- [docs/OUT-OF-SCOPE-DEBT.md](docs/OUT-OF-SCOPE-DEBT.md)
+- [docs/EVALUATION-MATRIX.md](docs/EVALUATION-MATRIX.md)
+- [docs/ADR-002-research-method-and-review-semantics.md](docs/ADR-002-research-method-and-review-semantics.md)
+- [docs/ADR-001-I8-I9-action-boundary.md](docs/ADR-001-I8-I9-action-boundary.md) — historical I8/I9 conflict (unchanged)
+
+Historical files titled “Independent Verification” are **not** renamed. Going forward they are read as same-context adversarial / post-implementation verification, not external audits.
 
 ## Research question
 
@@ -20,8 +44,9 @@ Can a workflow of individually authorized agent actions still create a forbidden
 - LLMs may propose actions but must not authorize them.
 - Tests are acceptance criteria and must not be weakened to fit an implementation.
 - A failed hypothesis is a valid research result.
+- Do not expand scope because a review said STOP; a new experiment needs a new frozen spec.
 
-## Frozen sequence
+## Frozen sequence (Phase 1 origin)
 
 1. Spec v0.1
 2. Composition Gate
@@ -29,9 +54,9 @@ Can a workflow of individually authorized agent actions still create a forbidden
 4. Prototype Spec v0.2
 5. Build deterministic prototype
 6. Test against frozen v0.2
-7. GO/STOP decision before v0.3
+7. Additive slices v0.3–v0.5/I9 and Phase 2 experiments (each frozen separately)
 
-See `docs/` for the frozen design documents.
+See `docs/` for the frozen design documents. Historical reviews keep their original titles and verdicts.
 
 ## v0.2 prototype (deterministic core)
 
