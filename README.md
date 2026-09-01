@@ -116,4 +116,10 @@ Additive. Frozen spec: `docs/PHASE2-EXPERIMENT-02-COMMUNICATION-GATE.md`. Experi
 
 Cross-agent transfer is `A → Communication Gate → B`. The gate evaluates metadata only (`evaluate_transfer`). No payload, tools, credentials, or policy writes.
 
+## Phase 2 (Experiment 03 — modeled implicit flow)
+
+Additive. Frozen spec: `docs/PHASE2-EXPERIMENT-03-IMPLICIT-FLOW.md`. Experiments 01–02 unchanged.
+
+Explicit `derived_from` IFC is the baseline. Modeled `control_decide` + `created_under` inherit SENSITIVE across A’s state write so B’s egress can be denied without transferring C1. PUBLIC control-flow egress remains ALLOW. No payload DLP, no LLM.
+
 
