@@ -101,3 +101,12 @@ Additive. Frozen v0.2–v0.4 are unchanged. See `docs/PROTOTYPE-v0.5-I9.md`.
 - Exact known/safe vocabulary only. No case folding, no alias interpretation, no LLM.
 - I9 does not globally deny unknown actions on ordinary resources.
 - `approval_token` does not authorize an unknown policy action.
+
+## Phase 2 (Experiment 01 — IFC composition)
+
+Additive and isolated under `lab/phase2/`. Frozen spec: `docs/PHASE2-EXPERIMENT-01.md`.
+
+Does not amend Phase 1. No LLM. Two labels only (`PUBLIC` / `SENSITIVE`).
+
+A/B: authority-only lets the READ→TRANSFER→EGRESS composition succeed; authority+IFC denies SENSITIVE external egress while PUBLIC egress by B remains ALLOW.
+
