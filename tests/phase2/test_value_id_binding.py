@@ -90,3 +90,32 @@ def test_exp03_empty_derive_is_deny_not_crash():
     assert d.allow is False
     assert d.reason == REASON_EMPTY
     assert "D0" not in exp.catalog
+
+
+def test_exp03_denied_control_decide_does_not_write_decisions():
+    exp = ImplicitFlowExperiment(ifc=True, control_deps=True)
+    assert exp.public_write(AGENT_A, "X", "pub").allow
+    assert exp.customer_read(AGENT_A, "C1").allow
+    before = dict(exp.decisions)
+    d = exp.control_decide(AGENT_A, "X", ["C1"])
+    assert d.allow is False
+    assert d.reason == REASON_COLLISION
+    assert exp.decisions == before
+    assert "X" not in exp.decisions
+    assert exp.catalog["X"].label == "PUBLIC"
+    sw = exp.state_write(AGENT_A, "S", "1", created_under="X")
+    assert sw.allow is False
+    assert "S" not in exp.workflow_state
+    assert exp.external == []
+
+
+def test_exp02_identical_remint_keeps_gate_checkpoint():
+    wf = GatedLab().workflow("wf-prov")
+    assert wf.customer_read(AGENT_A, "C1").allow
+    tr = wf.request_transfer(AGENT_A, AGENT_B, "C1")
+    assert tr.allow is True
+    checkpoint = f"{AGENT_A}->CommunicationGate->{AGENT_B}:{tr.message_id}"
+    assert checkpoint in wf.envelopes["C1"].provenance
+    remint = wf.customer_read(AGENT_A, "C1")
+    assert remint.allow is True
+    assert checkpoint in wf.envelopes["C1"].provenance

@@ -23,7 +23,7 @@ from lab.phase2.authority import (
 )
 from lab.phase2.control_dependencies import CONTROL_ORIGIN, ControlDecision
 from lab.phase2.labels import PUBLIC, SENSITIVE, join_labels
-from lab.phase2.values import DataValue, Phase2Decision, mint_conflicts
+from lab.phase2.values import DataValue, Phase2Decision, merge_provenance, mint_conflicts
 
 REASON_AUTHORITY = "AUTHORITY_DENIED"
 REASON_HOLDING = "VALUE_NOT_HELD"
@@ -96,8 +96,6 @@ class ImplicitFlowExperiment:
             (v.origin for v in inputs if v.label == SENSITIVE),
             CONTROL_ORIGIN,
         )
-        rec = ControlDecision(decision_id, tuple(depends_on), label, origin)
-        self.decisions[decision_id] = rec
         value = DataValue(
             value_id=decision_id,
             label=label,
@@ -106,7 +104,13 @@ class ImplicitFlowExperiment:
             provenance=(f"{actor}:{CONTROL_DECIDE}:{decision_id}",),
             payload="",
         )
-        return self._commit_hold(actor, value, auth)
+        if mint_conflicts(self.catalog.get(decision_id), value):
+            return self._deny(auth, True, REASON_COLLISION)
+        rec = ControlDecision(decision_id, tuple(depends_on), label, origin)
+        committed = self._commit_hold(actor, value, auth)
+        if committed.allow:
+            self.decisions[decision_id] = rec
+        return committed
 
     def state_write(
         self,
@@ -125,12 +129,12 @@ class ImplicitFlowExperiment:
         label = PUBLIC
         origin = WORKFLOW_STATE
         if self.control_deps and created_under:
-            parent = self.holdings[actor].get(created_under) or self.catalog.get(created_under)
-            if parent is None:
+            rec = self.decisions.get(created_under)
+            if rec is None:
                 return self._deny(auth, True, REASON_HOLDING)
             derived = (created_under,)
-            label = parent.label
-            origin = parent.origin if parent.label == SENSITIVE else WORKFLOW_STATE
+            label = rec.label
+            origin = rec.origin if rec.label == SENSITIVE else WORKFLOW_STATE
         _ = claimed_label  # ignored — no declassification
         value = DataValue(
             value_id=value_id,
@@ -307,8 +311,18 @@ class ImplicitFlowExperiment:
     def _commit_hold(self, actor: str, value: DataValue, auth: bool) -> Phase2Decision:
         if not known_actor(actor):
             return self._deny(False, True, REASON_ACTOR)
-        if mint_conflicts(self.catalog.get(value.value_id), value):
+        existing = self.catalog.get(value.value_id)
+        if mint_conflicts(existing, value):
             return self._deny(auth, True, REASON_COLLISION)
+        if existing is not None:
+            value = DataValue(
+                value_id=value.value_id,
+                label=value.label,
+                origin=value.origin,
+                derived_from=value.derived_from,
+                provenance=merge_provenance(existing.provenance, value.provenance),
+                payload=value.payload,
+            )
         self.catalog[value.value_id] = value
         self.holdings[actor][value.value_id] = value
         return Phase2Decision(True, auth, True, None, value=value)

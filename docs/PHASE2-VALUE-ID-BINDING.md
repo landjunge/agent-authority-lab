@@ -15,7 +15,7 @@ A **mint** is `customer.read`, `public.write`, `copy`, `derive`, `wrap`, `contro
 | Existing catalog/envelope for `value_id` | Incoming mint | Decision |
 |---|---|---|
 | none | any | ALLOW (first binding) |
-| same `label`, `origin`, `derived_from`, payload | provenance-only / extra holder | ALLOW |
+| same `label`, `origin`, `derived_from`, payload | provenance **kept and appended**; extra holder | ALLOW |
 | any security field differs (including SENSITIVE → PUBLIC) | | DENY `VALUE_ID_COLLISION`; store unchanged |
 
 **Transfer** (`workflow.send` / `receive`, gate `request_transfer` / `receive`) is not a mint. It may append provenance on the existing identity. It must not change `label`, `origin`, `derived_from`, or payload.
@@ -33,7 +33,10 @@ FlowOK still walks dependencies, but **the held object’s own label/origin is t
 - Same collision DENY in Experiment 02 if A overwrites after gate transfer and before B receive. In-flight `message_id` still names SENSITIVE `C1`.
 - Experiment 03: minting PUBLIC `C1` after SENSITIVE `C1` is DENY; catalog unchanged.
 - `derive(actor, "D0", [])` DENY `EMPTY_TRANSFORM` in all three runtimes.
-- DENY does not commit catalog, envelope, holdings, inbox, `external`, or workflow_state.
+- DENY does not commit catalog, envelope, holdings, inbox, `external`, workflow_state, or **`decisions`**.
+- `control_decide` checks collision **before** writing `decisions`. Catalog, holdings, and `decisions` commit together or not at all.
+- `state_write(..., created_under=id)` with `control_deps=True` uses **only** `self.decisions[id]` (label/origin of that control record). A catalog PUBLIC row with the same id is not the parent.
+- Identical remint of an existing binding does **not** drop provenance (gate checkpoints stay).
 
 ## Out of scope
 
@@ -47,3 +50,5 @@ FlowOK still walks dependencies, but **the held object’s own label/origin is t
 - SENSITIVE `C1` then PUBLIC `C1` ALLOW and B egress ALLOW under IFC
 - Empty derive raises
 - Transfer of the same C1 (send/receive) DENY solely because the id already exists
+- DENY `control_decide` still inserts into `decisions`
+- Identical remint drops a gate checkpoint from provenance

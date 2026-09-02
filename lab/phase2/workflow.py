@@ -18,7 +18,7 @@ from lab.phase2.authority import (
     known_actor,
 )
 from lab.phase2.labels import PUBLIC, SENSITIVE, join_labels
-from lab.phase2.values import DataValue, Phase2Decision, mint_conflicts
+from lab.phase2.values import DataValue, Phase2Decision, merge_provenance, mint_conflicts
 
 REASON_AUTHORITY = "AUTHORITY_DENIED"
 REASON_HOLDING = "VALUE_NOT_HELD"
@@ -216,8 +216,18 @@ class Experiment:
     def _commit_hold(self, actor: str, value: DataValue, auth: bool) -> Phase2Decision:
         if not known_actor(actor):
             return self._deny(False, True, REASON_ACTOR)
-        if mint_conflicts(self.catalog.get(value.value_id), value):
+        existing = self.catalog.get(value.value_id)
+        if mint_conflicts(existing, value):
             return self._deny(auth, True, REASON_COLLISION)
+        if existing is not None:
+            value = DataValue(
+                value_id=value.value_id,
+                label=value.label,
+                origin=value.origin,
+                derived_from=value.derived_from,
+                provenance=merge_provenance(existing.provenance, value.provenance),
+                payload=value.payload,
+            )
         self.catalog[value.value_id] = value
         self.holdings[actor][value.value_id] = value
         return Phase2Decision(True, auth, True, None, value=value)

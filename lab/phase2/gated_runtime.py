@@ -24,6 +24,7 @@ from lab.phase2.communication_gate import (
     SecurityEnvelope,
 )
 from lab.phase2.labels import PUBLIC, SENSITIVE, join_labels
+from lab.phase2.values import merge_provenance
 from lab.phase2.workflow import (
     REASON_AUTHORITY,
     REASON_COLLISION,
@@ -243,6 +244,14 @@ class GatedWorkflow:
                 or old_payload != payload
             ):
                 return False
+            env = SecurityEnvelope(
+                env.workflow_id,
+                env.value_id,
+                env.label,
+                env.origin,
+                env.derived_from,
+                merge_provenance(existing.provenance, env.provenance),
+            )
         self.envelopes[env.value_id] = env
         self.payloads[env.value_id] = payload
         self.holdings[actor].add(env.value_id)
