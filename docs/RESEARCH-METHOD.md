@@ -69,6 +69,34 @@ A later experiment is allowed only with all of:
 
 Historical example: Experiment 03 review `NEXT STEP: STOP` forbade Experiment 04 in that motion. A later authorized Experiment 04 would still be a new spec, not a continuation of that review.
 
+### 3.1 Program-level STOP (convergence)
+
+Cycle STOP (§3) ends **one** experiment motion. It does not say when the **approach** has failed to generalize.
+
+Phase 1 grew by enumeration: each new attack class produced a new invariant (I7, I8, I9). That pattern may not converge. It is measurable. The numbers below are fixed **before** any convergence-attack list exists. This document does **not** list the attacks and does **not** run the battery. Experiment 04 remains unauthorized until a separate frozen spec exists.
+
+**Battery (future, not this slice):**
+
+- `n = 10` composition attacks.
+- Each attack has its own frozen spec **before** implementation.
+- No attack is a restatement of an existing v0.2–v0.5 acceptance bullet or an Experiment 01–03 happy/denial path.
+- The list is frozen **before** scoring which invariant would catch which attack.
+
+**Score:** implement each attack against the monitor **as it exists at the start of the battery**. Do not add I10+ or a new trusted mechanism during the battery except to count it.
+
+Let `k` = number of attacks that the existing monitor does not deny, and that therefore need a new handwritten invariant or a new trusted mechanism.
+
+| Result | Criterion | Meaning |
+|---|---|---|
+| **Program-STOP** | `k ≥ 4` | Approach **REFUTED** for “the monitor generalizes.” Publisheable negative. |
+| **Not refuted on this battery** | `k ≤ 3` | **Not** SUPPORTED for generalization. Only: this battery failed to refute. |
+
+`k ≤ 3` must not be reported as “the monitor generalizes.”
+
+Until this battery is run, discretion on scope expansion defaults to **cycle STOP**, not GO.
+
+Independence: a battery written by the same author or model family is Level 1. It cannot be cited as Level 3/4.
+
 ## 4. Review independence levels
 
 Historical files titled **Independent Verification** keep that title. They are **not** renamed.
@@ -172,3 +200,22 @@ Example already used in this lab: HIGH inside frozen fake experiment; LOW for ge
 3. Write an ADR or resolution document.
 4. Historical reviews remain.
 5. Only then, if authorized, add an additive slice or a new experiment spec.
+
+## 13. Property oracles vs acceptance tests
+
+Handwritten frozen tests are the **acceptance contract**. They must not be weakened.
+
+Property-based tests (Hypothesis) are an **additional discovery layer**. They do not replace acceptance tests. They must not encode a wished-for security model that a frozen spec explicitly left ALLOW (I9 unknown verbs on ordinary resources).
+
+Frozen oracles: `docs/PBT-ORACLE-v1.md`.
+
+`pytest` twice remains a deterministic reproducibility check. Property tests with a bounded alphabet are still not fuzzing of the open string universe, mutation testing, or model checking.
+
+## 14. CI and history
+
+The rule “tests are acceptance criteria and must not be weakened” is process until a gate runs the suite on every push.
+
+- CI runs the full pytest suite, including property oracles, on Python 3.12.
+- CI failing is a FAIL of the push, not a license to weaken tests.
+- The freeze → implement → review commit sequence is part of the result. Do **not** squash it to a single commit.
+- Branch protection (no force-push, no branch deletion) is hygiene, not a new experiment. Required pull requests are **not** mandated here (direct push to `master` remains the current workflow).
