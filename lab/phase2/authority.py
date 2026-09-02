@@ -25,8 +25,13 @@ _INTERNAL = frozenset({COPY, DERIVE, WRAP, CONTROL_DECIDE})
 _CHANNEL = frozenset({WORKFLOW_SEND, WORKFLOW_RECEIVE, PUBLIC_WRITE})
 
 
+def known_actor(actor: str) -> bool:
+    """Frozen two-agent set. Unknown names are not implicit principals."""
+    return actor in _ACTORS
+
+
 def authority_ok(actor: str, action: str, resource: str) -> bool:
-    if actor not in _ACTORS:
+    if not known_actor(actor):
         return False
     if action in _INTERNAL:
         return True

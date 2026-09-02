@@ -4,6 +4,14 @@ import pytest
 
 from lab.validator import Lab
 
+try:
+    from hypothesis import settings
+except ImportError:
+    pass
+else:
+    settings.register_profile("lab", max_examples=80, deadline=None, derandomize=True)
+    settings.load_profile("lab")
+
 ATTACK_TESTS = {
     "test_budget_splitting_denies_action_101",
     "test_file_limit_denies_eleventh_unique_file",

@@ -19,6 +19,7 @@ from lab.phase2.authority import (
     COPY,
     DERIVE,
     authority_ok,
+    known_actor,
 )
 from lab.phase2.control_dependencies import CONTROL_ORIGIN, ControlDecision
 from lab.phase2.labels import PUBLIC, SENSITIVE, join_labels
@@ -29,6 +30,7 @@ REASON_HOLDING = "VALUE_NOT_HELD"
 REASON_STATE = "VALUE_NOT_IN_WORKFLOW_STATE"
 REASON_EGRESS = "SENSITIVE_EXTERNAL_EGRESS"
 REASON_CONTROL = "SENSITIVE_CONTROL_DEPENDENCY_EGRESS"
+REASON_ACTOR = "UNKNOWN_ACTOR"
 
 
 class ImplicitFlowExperiment:
@@ -46,6 +48,8 @@ class ImplicitFlowExperiment:
         self.attempts: list[dict] = []
 
     def customer_read(self, actor: str, value_id: str = "C1") -> Phase2Decision:
+        if not known_actor(actor):
+            return self._deny(False, True, REASON_ACTOR)
         auth = authority_ok(actor, CUSTOMER_READ, CUSTOMERS)
         if not auth:
             return self._deny(auth, True, REASON_AUTHORITY)
@@ -59,6 +63,8 @@ class ImplicitFlowExperiment:
         return self._commit_hold(actor, value, auth)
 
     def public_write(self, actor: str, value_id: str, payload: str = "hello world") -> Phase2Decision:
+        if not known_actor(actor):
+            return self._deny(False, True, REASON_ACTOR)
         auth = authority_ok(actor, PUBLIC_WRITE, WORKFLOW_MSG)
         if not auth:
             return self._deny(auth, True, REASON_AUTHORITY)
@@ -72,6 +78,8 @@ class ImplicitFlowExperiment:
         return self._commit_hold(actor, value, auth)
 
     def control_decide(self, actor: str, decision_id: str, depends_on: list[str]) -> Phase2Decision:
+        if not known_actor(actor):
+            return self._deny(False, True, REASON_ACTOR)
         auth = authority_ok(actor, CONTROL_DECIDE, WORKFLOW_STATE)
         if not auth:
             return self._deny(auth, True, REASON_AUTHORITY)
@@ -106,6 +114,8 @@ class ImplicitFlowExperiment:
         created_under: str | None = None,
         claimed_label: str | None = None,
     ) -> Phase2Decision:
+        if not known_actor(actor):
+            return self._deny(False, True, REASON_ACTOR)
         auth = authority_ok(actor, STATE_WRITE, WORKFLOW_STATE)
         if not auth:
             return self._deny(auth, True, REASON_AUTHORITY)
@@ -132,6 +142,8 @@ class ImplicitFlowExperiment:
         return self._commit_hold(actor, value, auth)
 
     def state_read(self, actor: str, value_id: str) -> Phase2Decision:
+        if not known_actor(actor):
+            return self._deny(False, True, REASON_ACTOR)
         auth = authority_ok(actor, STATE_READ, WORKFLOW_STATE)
         if not auth:
             return self._deny(auth, True, REASON_AUTHORITY)
@@ -159,6 +171,8 @@ class ImplicitFlowExperiment:
         return self._transform(actor, WRAP, dst_id, (src_id,))
 
     def external_send(self, actor: str, value_id: str) -> Phase2Decision:
+        if not known_actor(actor):
+            return self._deny(False, True, REASON_ACTOR)
         auth = authority_ok(actor, EXTERNAL_SEND, EXTERNAL)
         held = self.holdings[actor].get(value_id)
         if held is None:
@@ -178,6 +192,8 @@ class ImplicitFlowExperiment:
         return Phase2Decision(False, True, False, reason, explanation, held)
 
     def _transform(self, actor: str, action: str, dst_id: str, from_ids: tuple[str, ...]) -> Phase2Decision:
+        if not known_actor(actor):
+            return self._deny(False, True, REASON_ACTOR)
         auth = authority_ok(actor, action, WORKFLOW_MSG)
         if not auth:
             return self._deny(auth, True, REASON_AUTHORITY)
@@ -281,6 +297,8 @@ class ImplicitFlowExperiment:
         }
 
     def _commit_hold(self, actor: str, value: DataValue, auth: bool) -> Phase2Decision:
+        if not known_actor(actor):
+            return self._deny(False, True, REASON_ACTOR)
         self.catalog[value.value_id] = value
         self.holdings[actor][value.value_id] = value
         return Phase2Decision(True, auth, True, None, value=value)

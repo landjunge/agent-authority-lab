@@ -5,15 +5,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Protocol
 
-from lab.phase2.authority import AGENT_A, AGENT_B
+from lab.phase2.authority import known_actor
 
 POLICY_INTERNAL = "INTERNAL_TRANSFER_ALLOWED"
 REASON_CROSS_WORKFLOW = "CROSS_WORKFLOW_REFERENCE"
 REASON_NOT_HELD = "VALUE_NOT_HELD"
 REASON_NOT_FOUND = "VALUE_NOT_FOUND"
 REASON_ACTOR = "UNKNOWN_ACTOR"
-
-_ACTORS = frozenset({AGENT_A, AGENT_B})
 
 
 @dataclass(frozen=True)
@@ -59,7 +57,7 @@ class CommunicationGate:
         receiver: str,
         value_id: str,
     ) -> GateDecision:
-        if sender not in _ACTORS or receiver not in _ACTORS:
+        if not known_actor(sender) or not known_actor(receiver):
             return self._record(
                 GateDecision(False, REASON_ACTOR, sender, receiver, workflow_id, value_id)
             )

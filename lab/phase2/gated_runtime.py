@@ -15,10 +15,12 @@ from lab.phase2.authority import (
     WORKFLOW_MSG,
     WRAP,
     authority_ok,
+    known_actor,
 )
 from lab.phase2.communication_gate import (
     CommunicationGate,
     GateDecision,
+    REASON_ACTOR,
     SecurityEnvelope,
 )
 from lab.phase2.labels import PUBLIC, SENSITIVE, join_labels
@@ -42,7 +44,10 @@ class _View:
         wf = self._lab.workflows.get(workflow_id)
         if wf is None:
             return False
-        return value_id in wf.holdings[sender]
+        bucket = wf.holdings.get(sender)
+        if bucket is None:
+            return False
+        return value_id in bucket
 
     def value_in_other_workflow(self, workflow_id: str, value_id: str) -> bool:
         for wid, wf in self._lab.workflows.items():
@@ -80,6 +85,8 @@ class GatedWorkflow:
         self.attempts: list[dict] = []
 
     def customer_read(self, actor: str, value_id: str = "C1") -> GateDecision:
+        if not known_actor(actor):
+            return GateDecision(False, REASON_ACTOR, actor, actor, self.workflow_id, value_id)
         if not authority_ok(actor, CUSTOMER_READ, CUSTOMERS):
             return GateDecision(False, REASON_AUTHORITY, actor, actor, self.workflow_id, value_id)
         self._put(
@@ -90,6 +97,8 @@ class GatedWorkflow:
         return GateDecision(True, None, actor, actor, self.workflow_id, value_id, SENSITIVE)
 
     def public_write(self, actor: str, value_id: str, payload: str = "hello world") -> GateDecision:
+        if not known_actor(actor):
+            return GateDecision(False, REASON_ACTOR, actor, actor, self.workflow_id, value_id)
         if not authority_ok(actor, PUBLIC_WRITE, WORKFLOW_MSG):
             return GateDecision(False, REASON_AUTHORITY, actor, actor, self.workflow_id, value_id)
         self._put(
@@ -111,11 +120,15 @@ class GatedWorkflow:
 
     def request_transfer(self, sender: str, receiver: str, value_id: str, **claimed) -> GateDecision:
         _ = claimed
+        if not known_actor(sender) or not known_actor(receiver):
+            return GateDecision(False, REASON_ACTOR, sender, receiver, self.workflow_id, value_id)
         raw = self.lab.gate.evaluate_transfer(
             _View(self.lab), self.workflow_id, sender, receiver, value_id
         )
         if not raw.allow:
             return raw
+        if receiver not in self.inbox:
+            return GateDecision(False, REASON_ACTOR, sender, receiver, self.workflow_id, value_id)
         message_id = self.lab._next_message_id()
         env = self.envelopes[value_id]
         checkpoint = env.provenance + (f"{sender}->{CHECKPOINT}->{receiver}:{message_id}",)
@@ -136,6 +149,8 @@ class GatedWorkflow:
         )
 
     def receive(self, actor: str, message_id: str) -> GateDecision:
+        if not known_actor(actor):
+            return GateDecision(False, REASON_ACTOR, actor, actor, self.workflow_id, "")
         if message_id in self.consumed:
             return GateDecision(False, REASON_REPLAY, actor, actor, self.workflow_id, "")
         value_id = self.inbox[actor].get(message_id)
@@ -148,6 +163,8 @@ class GatedWorkflow:
         return GateDecision(True, None, actor, actor, self.workflow_id, value_id, env.label, message_id=message_id)
 
     def external_send(self, actor: str, value_id: str) -> GateDecision:
+        if not known_actor(actor):
+            return GateDecision(False, REASON_ACTOR, actor, actor, self.workflow_id, value_id)
         auth = authority_ok(actor, EXTERNAL_SEND, EXTERNAL)
         if value_id not in self.holdings[actor]:
             return GateDecision(False, REASON_HOLDING, actor, actor, self.workflow_id, value_id)
@@ -178,6 +195,8 @@ class GatedWorkflow:
         )
 
     def _transform(self, actor: str, action: str, dst_id: str, from_ids: tuple[str, ...]) -> GateDecision:
+        if not known_actor(actor):
+            return GateDecision(False, REASON_ACTOR, actor, actor, self.workflow_id, dst_id)
         if not authority_ok(actor, action, WORKFLOW_MSG):
             return GateDecision(False, REASON_AUTHORITY, actor, actor, self.workflow_id, dst_id)
         inputs = []
@@ -199,6 +218,8 @@ class GatedWorkflow:
         return GateDecision(True, None, actor, actor, self.workflow_id, dst_id, label)
 
     def _put(self, actor: str, env: SecurityEnvelope, payload: str) -> None:
+        if actor not in self.holdings:
+            return
         self.envelopes[env.value_id] = env
         self.payloads[env.value_id] = payload
         self.holdings[actor].add(env.value_id)
