@@ -48,6 +48,7 @@ Can a workflow of individually authorized agent actions still create a forbidden
 - Tests are acceptance criteria and must not be weakened to fit an implementation.
 - A failed hypothesis is a valid research result.
 - Do not expand scope because a review said STOP; a new experiment needs a new frozen spec.
+- After every commit, **push** to `origin`. Local-only commits are not done (`scripts/install-git-hooks.sh`).
 
 ## Frozen sequence (Phase 1 origin)
 

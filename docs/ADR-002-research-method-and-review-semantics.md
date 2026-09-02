@@ -35,6 +35,7 @@ Rules:
 - Experiment 04 (and I10+, declassification, prompt injection, real agents, Biscuit/Cedar/FIDES, 4AllPass) remain unauthorized until a new frozen spec exists.
 - Program-level STOP (`RESEARCH-METHOD.md` §3.1) is additive: `n=10`, `k≥4` refutes generalization. It does not reinterpret historical PASS/SUPPORTED strings. The battery is not this ADR and is not authorized by it.
 - Authors must not weaken old tests or frozen specs to obtain PASS.
+- A finished slice is on `origin`, not only on the author’s disk. Push is part of the loop.
 
 ## Status
 

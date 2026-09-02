@@ -191,7 +191,9 @@ Example already used in this lab: HIGH inside frozen fake experiment; LOW for ge
 6. Second identical full suite.
 7. Adversarial probes **outside** the acceptance suite (do not edit implementation after review starts).
 8. Score Axis A and Axis B separately; record gaps, limitations, out-of-scope debt.
-9. **STOP** (no automatic next experiment).
+9. Commit the slice (spec / feat / review as separate commits; do not squash).
+10. **Push** to `origin` immediately (`git push -u origin HEAD`). A commit that exists only locally is not done. The post-commit hook does this; agents still push if the hook did not run.
+11. **STOP** (no automatic next experiment).
 
 ## 12. What to do on SPEC CONFLICT
 
@@ -218,4 +220,5 @@ The rule “tests are acceptance criteria and must not be weakened” is process
 - CI runs the full pytest suite, including property oracles, on Python 3.12.
 - CI failing is a FAIL of the push, not a license to weaken tests.
 - The freeze → implement → review commit sequence is part of the result. Do **not** squash it to a single commit.
+- Every commit is pushed to `origin` in the same motion. The post-commit hook (`scripts/install-git-hooks.sh`) enforces this; agents still `git push -u origin HEAD` if they committed.
 - Branch protection (no force-push, no branch deletion) is hygiene, not a new experiment. Required pull requests are **not** mandated here (direct push to `master` remains the current workflow).
