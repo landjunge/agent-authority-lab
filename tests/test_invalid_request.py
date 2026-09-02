@@ -10,8 +10,7 @@ def test_none_parameters_on_irreversible_is_invalid_request_not_crash():
     d = lab.submit(ActionRequest("A", "repo.delete", "repo.delete", None, wid))  # type: ignore[arg-type]
     assert d.allow is False
     assert d.deny_reason == INVALID_REQUEST
-    assert lab.state(wid).action_count == 0
-    assert lab.state(wid).provenance == []
+    assert wid not in lab._states
 
 
 def test_empty_actor_is_invalid_request():
