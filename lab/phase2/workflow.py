@@ -18,13 +18,15 @@ from lab.phase2.authority import (
     known_actor,
 )
 from lab.phase2.labels import PUBLIC, SENSITIVE, join_labels
-from lab.phase2.values import DataValue, Phase2Decision
+from lab.phase2.values import DataValue, Phase2Decision, mint_conflicts
 
 REASON_AUTHORITY = "AUTHORITY_DENIED"
 REASON_HOLDING = "VALUE_NOT_HELD"
 REASON_INBOX = "VALUE_NOT_IN_INBOX"
 REASON_EGRESS = "SENSITIVE_EXTERNAL_EGRESS"
 REASON_ACTOR = "UNKNOWN_ACTOR"
+REASON_COLLISION = "VALUE_ID_COLLISION"
+REASON_EMPTY = "EMPTY_TRANSFORM"
 
 
 class Experiment:
@@ -96,6 +98,8 @@ class Experiment:
             provenance=held.provenance + (f"{actor}:{WORKFLOW_SEND}:{to_actor}",),
             payload=held.payload,
         )
+        if mint_conflicts(self.catalog.get(value_id), transferred):
+            return self._deny(auth, True, REASON_COLLISION)
         self.catalog[transferred.value_id] = transferred
         self.inbox[to_actor][value_id] = transferred
         self.holdings[actor][value_id] = transferred
@@ -118,6 +122,8 @@ class Experiment:
             provenance=incoming.provenance + (f"{actor}:{WORKFLOW_RECEIVE}",),
             payload=incoming.payload,
         )
+        if mint_conflicts(self.catalog.get(value_id), received):
+            return self._deny(auth, True, REASON_COLLISION)
         self.catalog[value_id] = received
         self.holdings[actor][value_id] = received
         del self.inbox[actor][value_id]
@@ -147,6 +153,8 @@ class Experiment:
         auth = authority_ok(actor, action, WORKFLOW_MSG)
         if not auth:
             return self._deny(auth, True, REASON_AUTHORITY)
+        if not from_ids:
+            return self._deny(auth, True, REASON_EMPTY)
         inputs: list[DataValue] = []
         for src in from_ids:
             held = self.holdings[actor].get(src)
@@ -166,6 +174,8 @@ class Experiment:
         return self._commit_hold(actor, value, auth)
 
     def _depends_on_sensitive(self, value: DataValue) -> bool:
+        if value.label == SENSITIVE or value.origin == CUSTOMERS:
+            return True
         seen: set[str] = set()
         stack = [value.value_id]
         while stack:
@@ -206,6 +216,8 @@ class Experiment:
     def _commit_hold(self, actor: str, value: DataValue, auth: bool) -> Phase2Decision:
         if not known_actor(actor):
             return self._deny(False, True, REASON_ACTOR)
+        if mint_conflicts(self.catalog.get(value.value_id), value):
+            return self._deny(auth, True, REASON_COLLISION)
         self.catalog[value.value_id] = value
         self.holdings[actor][value.value_id] = value
         return Phase2Decision(True, auth, True, None, value=value)

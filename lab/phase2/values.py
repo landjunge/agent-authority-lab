@@ -14,6 +14,18 @@ class DataValue:
     payload: str = ""
 
 
+def mint_conflicts(existing: DataValue | None, incoming: DataValue) -> bool:
+    """True if `incoming` would rebind an id to a different security identity."""
+    if existing is None:
+        return False
+    return (
+        existing.label != incoming.label
+        or existing.origin != incoming.origin
+        or existing.derived_from != incoming.derived_from
+        or existing.payload != incoming.payload
+    )
+
+
 @dataclass
 class Phase2Decision:
     allow: bool

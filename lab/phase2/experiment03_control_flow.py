@@ -23,7 +23,7 @@ from lab.phase2.authority import (
 )
 from lab.phase2.control_dependencies import CONTROL_ORIGIN, ControlDecision
 from lab.phase2.labels import PUBLIC, SENSITIVE, join_labels
-from lab.phase2.values import DataValue, Phase2Decision
+from lab.phase2.values import DataValue, Phase2Decision, mint_conflicts
 
 REASON_AUTHORITY = "AUTHORITY_DENIED"
 REASON_HOLDING = "VALUE_NOT_HELD"
@@ -31,6 +31,8 @@ REASON_STATE = "VALUE_NOT_IN_WORKFLOW_STATE"
 REASON_EGRESS = "SENSITIVE_EXTERNAL_EGRESS"
 REASON_CONTROL = "SENSITIVE_CONTROL_DEPENDENCY_EGRESS"
 REASON_ACTOR = "UNKNOWN_ACTOR"
+REASON_COLLISION = "VALUE_ID_COLLISION"
+REASON_EMPTY = "EMPTY_TRANSFORM"
 
 
 class ImplicitFlowExperiment:
@@ -138,6 +140,8 @@ class ImplicitFlowExperiment:
             provenance=(f"{actor}:{STATE_WRITE}:{value_id}",),
             payload=payload,
         )
+        if mint_conflicts(self.catalog.get(value_id), value):
+            return self._deny(auth, True, REASON_COLLISION)
         self.workflow_state[value_id] = value
         return self._commit_hold(actor, value, auth)
 
@@ -197,6 +201,8 @@ class ImplicitFlowExperiment:
         auth = authority_ok(actor, action, WORKFLOW_MSG)
         if not auth:
             return self._deny(auth, True, REASON_AUTHORITY)
+        if not from_ids:
+            return self._deny(auth, True, REASON_EMPTY)
         inputs: list[DataValue] = []
         for src in from_ids:
             held = self.holdings[actor].get(src)
@@ -219,6 +225,8 @@ class ImplicitFlowExperiment:
         return self._commit_hold(actor, value, auth)
 
     def _depends_on_sensitive(self, value: DataValue) -> bool:
+        if value.label == SENSITIVE or value.origin == CUSTOMERS:
+            return True
         seen: set[str] = set()
         stack = [value.value_id]
         while stack:
@@ -299,6 +307,8 @@ class ImplicitFlowExperiment:
     def _commit_hold(self, actor: str, value: DataValue, auth: bool) -> Phase2Decision:
         if not known_actor(actor):
             return self._deny(False, True, REASON_ACTOR)
+        if mint_conflicts(self.catalog.get(value.value_id), value):
+            return self._deny(auth, True, REASON_COLLISION)
         self.catalog[value.value_id] = value
         self.holdings[actor][value.value_id] = value
         return Phase2Decision(True, auth, True, None, value=value)

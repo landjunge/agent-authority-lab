@@ -24,7 +24,14 @@ from lab.phase2.communication_gate import (
     SecurityEnvelope,
 )
 from lab.phase2.labels import PUBLIC, SENSITIVE, join_labels
-from lab.phase2.workflow import REASON_AUTHORITY, REASON_EGRESS, REASON_HOLDING, REASON_INBOX
+from lab.phase2.workflow import (
+    REASON_AUTHORITY,
+    REASON_COLLISION,
+    REASON_EMPTY,
+    REASON_EGRESS,
+    REASON_HOLDING,
+    REASON_INBOX,
+)
 
 REASON_REPLAY = "REPLAY"
 CHECKPOINT = "CommunicationGate"
@@ -89,11 +96,9 @@ class GatedWorkflow:
             return GateDecision(False, REASON_ACTOR, actor, actor, self.workflow_id, value_id)
         if not authority_ok(actor, CUSTOMER_READ, CUSTOMERS):
             return GateDecision(False, REASON_AUTHORITY, actor, actor, self.workflow_id, value_id)
-        self._put(
-            actor,
-            SecurityEnvelope(self.workflow_id, value_id, SENSITIVE, CUSTOMERS, (), (f"{actor}:{CUSTOMER_READ}",)),
-            "CUSTOMER_001",
-        )
+        env = SecurityEnvelope(self.workflow_id, value_id, SENSITIVE, CUSTOMERS, (), (f"{actor}:{CUSTOMER_READ}",))
+        if not self._put(actor, env, "CUSTOMER_001"):
+            return GateDecision(False, REASON_COLLISION, actor, actor, self.workflow_id, value_id)
         return GateDecision(True, None, actor, actor, self.workflow_id, value_id, SENSITIVE)
 
     def public_write(self, actor: str, value_id: str, payload: str = "hello world") -> GateDecision:
@@ -101,11 +106,9 @@ class GatedWorkflow:
             return GateDecision(False, REASON_ACTOR, actor, actor, self.workflow_id, value_id)
         if not authority_ok(actor, PUBLIC_WRITE, WORKFLOW_MSG):
             return GateDecision(False, REASON_AUTHORITY, actor, actor, self.workflow_id, value_id)
-        self._put(
-            actor,
-            SecurityEnvelope(self.workflow_id, value_id, PUBLIC, WORKFLOW_MSG, (), (f"{actor}:{PUBLIC_WRITE}",)),
-            payload,
-        )
+        env = SecurityEnvelope(self.workflow_id, value_id, PUBLIC, WORKFLOW_MSG, (), (f"{actor}:{PUBLIC_WRITE}",))
+        if not self._put(actor, env, payload):
+            return GateDecision(False, REASON_COLLISION, actor, actor, self.workflow_id, value_id)
         return GateDecision(True, None, actor, actor, self.workflow_id, value_id, PUBLIC)
 
     def copy(self, actor: str, src_id: str, dst_id: str) -> GateDecision:
@@ -132,9 +135,16 @@ class GatedWorkflow:
         message_id = self.lab._next_message_id()
         env = self.envelopes[value_id]
         checkpoint = env.provenance + (f"{sender}->{CHECKPOINT}->{receiver}:{message_id}",)
-        self.envelopes[value_id] = SecurityEnvelope(
+        updated = SecurityEnvelope(
             env.workflow_id, env.value_id, env.label, env.origin, env.derived_from, checkpoint
         )
+        if (
+            updated.label != env.label
+            or updated.origin != env.origin
+            or updated.derived_from != env.derived_from
+        ):
+            return GateDecision(False, REASON_COLLISION, sender, receiver, self.workflow_id, value_id)
+        self.envelopes[value_id] = updated
         self.inbox[receiver][message_id] = value_id
         return GateDecision(
             True,
@@ -199,6 +209,8 @@ class GatedWorkflow:
             return GateDecision(False, REASON_ACTOR, actor, actor, self.workflow_id, dst_id)
         if not authority_ok(actor, action, WORKFLOW_MSG):
             return GateDecision(False, REASON_AUTHORITY, actor, actor, self.workflow_id, dst_id)
+        if not from_ids:
+            return GateDecision(False, REASON_EMPTY, actor, actor, self.workflow_id, dst_id)
         inputs = []
         for src in from_ids:
             if src not in self.holdings[actor]:
@@ -214,17 +226,31 @@ class GatedWorkflow:
             from_ids,
             tuple(p for e in inputs for p in e.provenance) + (f"{actor}:{action}:{dst_id}",),
         )
-        self._put(actor, env, "derived")
+        if not self._put(actor, env, "derived"):
+            return GateDecision(False, REASON_COLLISION, actor, actor, self.workflow_id, dst_id)
         return GateDecision(True, None, actor, actor, self.workflow_id, dst_id, label)
 
-    def _put(self, actor: str, env: SecurityEnvelope, payload: str) -> None:
+    def _put(self, actor: str, env: SecurityEnvelope, payload: str) -> bool:
         if actor not in self.holdings:
-            return
+            return False
+        existing = self.envelopes.get(env.value_id)
+        if existing is not None:
+            old_payload = self.payloads.get(env.value_id)
+            if (
+                existing.label != env.label
+                or existing.origin != env.origin
+                or existing.derived_from != env.derived_from
+                or old_payload != payload
+            ):
+                return False
         self.envelopes[env.value_id] = env
         self.payloads[env.value_id] = payload
         self.holdings[actor].add(env.value_id)
+        return True
 
     def _depends_on_sensitive(self, env: SecurityEnvelope) -> bool:
+        if env.label == SENSITIVE or env.origin == CUSTOMERS:
+            return True
         seen: set[str] = set()
         stack = [env.value_id]
         while stack:
