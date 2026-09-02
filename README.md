@@ -15,6 +15,7 @@ The original v0.2 specification remains frozen. Subsequent additive experiments 
 | Phase 2 Exp 02 | Communication Gate | Hypothesis SUPPORTED *inside the fake lab* |
 | Phase 2 Exp 03 | Modeled implicit / control-flow dependency | Hypothesis SUPPORTED *inside modeled control dependencies* |
 | Phase 2 repair | Value-id binding (no SENSITIVE→PUBLIC rebind) | Additive. Not Experiment 04. `docs/PHASE2-VALUE-ID-BINDING.md` |
+| Phase 1 repair | In-process `submit` lock + `INVALID_REQUEST` | Not T-19. `docs/PHASE1-SUBMIT-ATOMICITY.md` |
 | Tooling | Program-STOP numbers, PBT oracles, CI | Not Experiment 04. See `docs/RESEARCH-METHOD.md` §3.1 and `docs/PBT-ORACLE-v1.md` |
 
 Latest verified suite is recorded in the most recent review. **PASS ≠ SUPPORTED.**
