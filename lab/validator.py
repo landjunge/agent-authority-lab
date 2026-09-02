@@ -17,6 +17,7 @@ import threading
 
 from lab.invariants import evaluate
 from lab.models import (
+    CAPACITY_EXCEEDED,
     INVALID_REQUEST,
     MAX_REQUEST_FIELD,
     ActionRequest,
@@ -41,10 +42,19 @@ def validate_request(req: object) -> str | None:
 
 
 class Lab:
-    def __init__(self) -> None:
+    #: Beyond this many concurrently tracked workflows, `submit` refuses rather
+    #: than growing without bound. A monitor that dies of memory exhaustion is
+    #: fail-crash, not fail-closed, and an unbounded table is reachable by
+    #: anyone who can pick workflow ids. Call `finish()` when a workflow ends.
+    MAX_TRACKED_WORKFLOWS = 10_000
+
+    def __init__(self, max_tracked: int | None = None) -> None:
         self._states: dict[str, WorkflowState] = {}
         self._locks: dict[str, threading.Lock] = {}
         self._table_lock = threading.Lock()
+        self._max_tracked = (
+            self.MAX_TRACKED_WORKFLOWS if max_tracked is None else max_tracked
+        )
 
     def _lock_for(self, workflow_id: str) -> threading.Lock:
         with self._table_lock:
@@ -53,6 +63,30 @@ class Lab:
                 lock = threading.Lock()
                 self._locks[workflow_id] = lock
             return lock
+
+    def _at_capacity(self, workflow_id: str) -> bool:
+        with self._table_lock:
+            return (
+                workflow_id not in self._states
+                and len(self._states) >= self._max_tracked
+            )
+
+    def finish(self, workflow_id: str) -> bool:
+        """Drop all state for a completed workflow. Returns True if it existed.
+
+        Without this the table only ever grows: one entry plus one lock per
+        distinct workflow id, never released.
+        """
+        lock = self._lock_for(workflow_id)
+        with lock:
+            existed = self._states.pop(workflow_id, None) is not None
+        with self._table_lock:
+            self._locks.pop(workflow_id, None)
+        return existed
+
+    def tracked_workflows(self) -> int:
+        with self._table_lock:
+            return len(self._states)
 
     def _state_unlocked(self, workflow_id: str) -> WorkflowState:
         if workflow_id not in self._states:
@@ -71,6 +105,12 @@ class Lab:
                 allow=False,
                 deny_reason=INVALID_REQUEST,
                 violated_invariants=[INVALID_REQUEST],
+            )
+        if self._at_capacity(req.workflow_id):
+            return Decision(
+                allow=False,
+                deny_reason=CAPACITY_EXCEEDED,
+                violated_invariants=[CAPACITY_EXCEEDED],
             )
         lock = self._lock_for(req.workflow_id)
         with lock:

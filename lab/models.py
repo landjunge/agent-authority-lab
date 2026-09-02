@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from copy import deepcopy
 from dataclasses import dataclass, field
-from typing import Any
+from types import MappingProxyType
+from typing import Any, Mapping
 
 PROTECTED_PATH = "config/security-policy.json"
 WRITE_ACTIONS = frozenset({"file.write"})
@@ -40,12 +40,26 @@ I7_SECURITY_TEST_DELETE = "I7_SECURITY_TEST_DELETE"
 I8_PROTECTED_MUTATION = "I8_PROTECTED_MUTATION"
 I9_UNKNOWN_ACTION_PROTECTED = "I9_UNKNOWN_ACTION_PROTECTED"
 INVALID_REQUEST = "INVALID_REQUEST"
+CAPACITY_EXCEEDED = "CAPACITY_EXCEEDED"
 
 MAX_REQUEST_FIELD = 256
 
 MAX_ACTIONS = 100
 MAX_UNIQUE_FILES = 10
 MAX_DELEGATION_DEPTH = 1
+
+
+def _freeze_view(view: dict[str, Any]) -> Mapping[str, Any]:
+    """Make a public_view genuinely immutable, not just re-binding-proof.
+
+    ``frozen=True`` on the dataclass stops ``rec.state_after = ...`` but does
+    nothing about ``rec.state_after["files_changed"] = 999``. Freezing here is
+    what lets ``snapshot()`` share record objects instead of deep-copying the
+    whole provenance on every single submit.
+    """
+    return MappingProxyType(
+        {k: tuple(v) if isinstance(v, list) else v for k, v in view.items()}
+    )
 
 
 @dataclass(frozen=True)
@@ -55,10 +69,14 @@ class ProvenanceRecord:
     action: str
     resource: str
     decision: str
-    state_before: dict[str, Any]
-    state_after: dict[str, Any]
+    state_before: Mapping[str, Any]
+    state_after: Mapping[str, Any]
     timestamp: str
     seq: int
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "state_before", _freeze_view(dict(self.state_before)))
+        object.__setattr__(self, "state_after", _freeze_view(dict(self.state_after)))
 
 
 @dataclass
@@ -85,7 +103,9 @@ class WorkflowState:
             delegation_depth=self.delegation_depth,
             network_destinations=set(self.network_destinations),
             irreversible_effects=list(self.irreversible_effects),
-            provenance=deepcopy(self.provenance),
+            # Records are immutable (see _freeze_view), so sharing them is safe.
+            # A deepcopy here would make every submit cost O(history).
+            provenance=list(self.provenance),
             actor_depth=dict(self.actor_depth),
         )
 
