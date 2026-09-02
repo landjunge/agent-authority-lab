@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -47,7 +48,7 @@ MAX_UNIQUE_FILES = 10
 MAX_DELEGATION_DEPTH = 1
 
 
-@dataclass
+@dataclass(frozen=True)
 class ProvenanceRecord:
     workflow_id: str
     actor: str
@@ -84,7 +85,7 @@ class WorkflowState:
             delegation_depth=self.delegation_depth,
             network_destinations=set(self.network_destinations),
             irreversible_effects=list(self.irreversible_effects),
-            provenance=list(self.provenance),
+            provenance=deepcopy(self.provenance),
             actor_depth=dict(self.actor_depth),
         )
 

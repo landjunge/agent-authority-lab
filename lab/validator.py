@@ -54,10 +54,16 @@ class Lab:
                 self._locks[workflow_id] = lock
             return lock
 
-    def state(self, workflow_id: str) -> WorkflowState:
+    def _state_unlocked(self, workflow_id: str) -> WorkflowState:
         if workflow_id not in self._states:
             self._states[workflow_id] = empty_state(workflow_id)
         return self._states[workflow_id]
+
+    def state(self, workflow_id: str) -> WorkflowState:
+        """Public view: a detached snapshot. Mutating it does not affect the monitor."""
+        lock = self._lock_for(workflow_id)
+        with lock:
+            return self._state_unlocked(workflow_id).snapshot()
 
     def submit(self, req: ActionRequest) -> Decision:
         if validate_request(req) is not None:
@@ -68,7 +74,7 @@ class Lab:
             )
         lock = self._lock_for(req.workflow_id)
         with lock:
-            current = self.state(req.workflow_id)
+            current = self._state_unlocked(req.workflow_id)
             before = current.snapshot()
             predicted = predict_next(before, req)
             violated = evaluate(req, predicted)
