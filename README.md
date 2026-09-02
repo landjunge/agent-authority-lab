@@ -14,8 +14,9 @@ The original v0.2 specification remains frozen. Subsequent additive experiments 
 | Phase 2 Exp 01 | Explicit IFC vs authority-only | Hypothesis SUPPORTED *inside the fake lab* |
 | Phase 2 Exp 02 | Communication Gate | Hypothesis SUPPORTED *inside the fake lab* |
 | Phase 2 Exp 03 | Modeled implicit / control-flow dependency | Hypothesis SUPPORTED *inside modeled control dependencies* |
+| Tooling | Program-STOP numbers, PBT oracles, CI | Not Experiment 04. See `docs/RESEARCH-METHOD.md` §3.1 and `docs/PBT-ORACLE-v1.md` |
 
-Latest verified suite (Experiment 03 review, commit `ae1721d` / review `f2dcf8e`): **118 passed / 0 failed**, two identical `pytest -q` runs.
+Latest verified suite is recorded in the most recent review. **PASS ≠ SUPPORTED.**
 
 **PASS ≠ SUPPORTED.** Green tests are spec conformance in this fake world. See [docs/RESEARCH-METHOD.md](docs/RESEARCH-METHOD.md).
 
@@ -23,7 +24,8 @@ The lab is separate from 4AllPass. No real credentials, production systems, or s
 
 ## Method (canonical)
 
-- [docs/RESEARCH-METHOD.md](docs/RESEARCH-METHOD.md) — PASS vs hypothesis, STOP, review levels
+- [docs/RESEARCH-METHOD.md](docs/RESEARCH-METHOD.md) — PASS vs hypothesis, cycle STOP, program-STOP, CI
+- [docs/PBT-ORACLE-v1.md](docs/PBT-ORACLE-v1.md) — Hypothesis contracts (not I9 default-deny)
 - [docs/THREAT-MODEL.md](docs/THREAT-MODEL.md)
 - [docs/OUT-OF-SCOPE-DEBT.md](docs/OUT-OF-SCOPE-DEBT.md)
 - [docs/EVALUATION-MATRIX.md](docs/EVALUATION-MATRIX.md)
@@ -88,7 +90,8 @@ I4 only constrains the `delegate` action. Independent agents may still submit in
 ```bash
 python3.12 -m venv .venv
 .venv/bin/pip install -e ".[dev]"
-.venv/bin/pytest
+.venv/bin/pytest -q
+# CI runs the same suite twice on Python 3.12 (see .github/workflows/test.yml)
 ```
 
 ### What v0.2 does **not** prove

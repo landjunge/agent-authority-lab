@@ -12,7 +12,7 @@ What this lab **actually runs**, and what those runs do **not** mean.
 | Honesty gates | YES | Result not from stripping required permissions / DLP / LLM | That the hypothesis is true in the world | Each Phase 2 review table | Mandatory |
 | State-integrity checks | YES | DENY does not commit monitor/external state | Adapter identity (Phase 1 gap) | Phase 1 DENY snapshots; Exp 01–03 `external == []` | Keep |
 | Provenance checks | YES | DENY explanations are IDs/origins, no payload | Tamper-evident logs (T-30) | Exp 01–03 explanation dicts | Keep |
-| Property-based testing | **NOT USED** | — | — | — | Could stress path canonicalization |
+| Property-based testing | YES (bounded alphabet) | Monitor contracts P1–P7 in `docs/PBT-ORACLE-v1.md` | Open-string fuzzing; I2 verb completeness; T-19 | `tests/test_pbt_oracles.py`, `tests/phase2/test_phase2_pbt_oracles.py` | Keep; do not invert P5 |
 | Fuzzing | **NOT USED** | — | — | — | Action-string / path fuzz |
 | Mutation testing | **NOT USED** | — | — | — | Whether tests catch invariant deletion |
 | Random test ordering | **NOT USED** | Plugin not installed; reviews documented that | Hidden order coupling | Gate review 192e452 | Optional later |
