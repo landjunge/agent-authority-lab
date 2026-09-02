@@ -4,6 +4,7 @@ from typing import Any
 
 from lab.fake_repo import FakeRepo
 from lab.models import ActionRequest, Decision
+from lab.paths import canonical_path
 from lab.validator import Lab
 
 
@@ -16,6 +17,7 @@ class FakeAdapter:
 
     def write(self, actor: str, path: str, workflow_id: str, content: str = "") -> Decision:
         _ = content  # not persisted on deny; repo only updates on allow
+        path = canonical_path(path) or path
         d = self.lab.submit(
             ActionRequest(actor, "file.write", path, {}, workflow_id)
         )
@@ -24,6 +26,7 @@ class FakeAdapter:
         return d
 
     def read(self, actor: str, path: str, workflow_id: str) -> Decision:
+        path = canonical_path(path) or path
         return self.lab.submit(
             ActionRequest(actor, "file.read", path, {}, workflow_id)
         )
@@ -31,6 +34,7 @@ class FakeAdapter:
     def delete(
         self, actor: str, path: str, workflow_id: str, approval_token: Any = None
     ) -> Decision:
+        path = canonical_path(path) or path
         params: dict[str, Any] = {}
         if approval_token is not None:
             params["approval_token"] = approval_token
