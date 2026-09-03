@@ -26,5 +26,6 @@ No row here authorizes an experiment. `PLANNED` is unused unless a future spec i
 | OOS-016 | Declassification | High | No downgrade channel | Yes — if claimed | Exp 01: no declassify | Separate spec if ever authorized | OPEN |
 | OOS-017 | Aggregation inference | High | Single-bit encode only | Yes — many PUBLIC bits | Exp 03 one status field | Aggregation experiment | OPEN |
 | OOS-018 | Long-horizon state corruption | Medium–high | Short pytest workflows | Yes — drift over days | Slow-drift is I1 count, not months | Horizon lab | OPEN |
+| OOS-019 | I2 keys on the exact string `file.write`; other mutating verbs are not counted | High | Frozen I2 / `WRITE_ACTIONS`; PBT-P5 documents the gap on purpose | Yes — `file.create` (and any unlisted write verb) bypasses the unique-file cap | PBT-P5: `allowed == len(paths)` and `files_changed == 0` | Verb-complete I2 (not authorized) | OPEN |
 
 I8/I9 historical SPEC CONFLICT remains in ADR-001 and old reviews — not “resolved away.”
