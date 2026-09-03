@@ -33,11 +33,11 @@ def _join(thread: threading.Thread) -> None:
 def test_capacity_check_and_reservation_are_atomic():
     """Two new ids at max_tracked=1: at most one ALLOW, tracked never exceeds 1.
 
-    Both threads are forced through `_capacity_seam` after the first capacity
-    check and before reservation. A protocol that releases the table lock
-    between those steps admits both. The hook count must be 2: if a later
-    refactor stops calling the seam, this assertion fails instead of going
-    green for the wrong reason.
+    The seam lives inside `_admit`, after the first capacity look and before
+    the insert — not in `submit` before `_admit`. A refactor that splits
+    check and reserve inside `_admit` is then forced to lose, instead of
+    going green because the window moved past the hook. `seam_hits == 2`
+    still guards a refactor that stops calling the hook at all.
     """
     lab = Lab(max_tracked=1)
     seam_hits: list[str] = []

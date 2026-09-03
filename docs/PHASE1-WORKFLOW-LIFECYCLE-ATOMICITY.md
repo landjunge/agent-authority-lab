@@ -13,7 +13,7 @@ Two in-process races in the workflow table:
 ## Rules
 
 1. One registry entry per live workflow id. The per-workflow lock and the `WorkflowState` are fields of that entry. They cannot be inserted or removed independently.
-2. Checking capacity, reserving a new workflow, and binding its lock are one critical section under `_table_lock`.
+2. Checking capacity, reserving a new workflow, and binding its lock are one critical section under `_table_lock`. `_admit` may drop the lock for `_capacity_seam` after a first look; the section *after* the seam re-checks capacity in the same hold as the insert. A test that barriers in that seam must see at most `max_tracked` live entries. If a later refactor stops calling the seam, `seam_hits == 2` fails instead of going green.
 3. `tracked_workflows()` never exceeds `max_tracked`, including under concurrent new ids.
 4. At most one active registry entry per workflow id at any time.
 5. No thread may use a stale (already removed) lock reference to create state. Waiters on a retired entry retry admission; they do not write.
@@ -46,7 +46,10 @@ There is no lock table separate from `_entries`. `finish()` pops the entry from 
 ### `submit` / `finish` order
 
 ```text
-submit:  invalid? → (loop) capacity check → capacity_seam → admit
+submit:  invalid? → (loop) fast-path at_capacity → admit
+admit:   table_lock: existing? / first look at cap
+         → capacity_seam (no table lock)
+         → table_lock: re-check + insert + bind lock  (or None)
          → after_lock_ref → entry.lock → if retired: retry
          → predict → evaluate → commit or DENY-restore
 finish:  table_lock: pop entry (or return False if absent)
