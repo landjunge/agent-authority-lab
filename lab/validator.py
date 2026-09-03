@@ -75,9 +75,14 @@ class Lab:
         """Drop all state for a completed workflow. Returns True if it existed.
 
         Without this the table only ever grows: one entry plus one lock per
-        distinct workflow id, never released.
+        distinct workflow id, never released. Unknown ids must not mint a lock.
         """
-        lock = self._lock_for(workflow_id)
+        with self._table_lock:
+            if workflow_id not in self._states and workflow_id not in self._locks:
+                return False
+            lock = self._locks.get(workflow_id)
+        if lock is None:
+            return False
         with lock:
             existed = self._states.pop(workflow_id, None) is not None
         with self._table_lock:
@@ -94,10 +99,20 @@ class Lab:
         return self._states[workflow_id]
 
     def state(self, workflow_id: str) -> WorkflowState:
-        """Public view: a detached snapshot. Mutating it does not affect the monitor."""
-        lock = self._lock_for(workflow_id)
+        """Public view: a detached snapshot. Mutating it does not affect the monitor.
+
+        Unknown ids return an empty snapshot without storing state or a lock.
+        """
+        with self._table_lock:
+            live = self._states.get(workflow_id)
+            lock = self._locks.get(workflow_id) if live is not None else None
+        if live is None or lock is None:
+            return empty_state(workflow_id).snapshot()
         with lock:
-            return self._state_unlocked(workflow_id).snapshot()
+            live = self._states.get(workflow_id)
+            if live is None:
+                return empty_state(workflow_id).snapshot()
+            return live.snapshot()
 
     def submit(self, req: ActionRequest) -> Decision:
         if validate_request(req) is not None:
