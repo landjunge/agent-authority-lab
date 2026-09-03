@@ -20,7 +20,8 @@ The original v0.2 specification remains frozen. Subsequent additive experiments 
 | Phase 1 repair | Public `state()` is a snapshot; provenance frozen | `docs/PHASE1-STATE-ENCAPSULATION.md` |
 | Phase 1 repair | Workflow registry: capacity+reserve atomic; `finish()` is coordinator-only | `docs/PHASE1-WORKFLOW-LIFECYCLE-ATOMICITY.md` |
 | Tooling | Program-STOP numbers, PBT oracles, CI | Not Experiment 04. See `docs/RESEARCH-METHOD.md` §3.1 and `docs/PBT-ORACLE-v1.md` |
-| Tooling | Convergence battery protocol + catalog v1 (not scored) | Additive. Not Experiment 04. `docs/CONVERGENCE-BATTERY-v1.md`, `docs/CONVERGENCE-ATTACK-CATALOG-v1.md` |
+| Tooling | Convergence battery protocol + catalog v1 | Additive. Not Experiment 04. `docs/CONVERGENCE-BATTERY-v1.md`, `docs/CONVERGENCE-ATTACK-CATALOG-v1.md` |
+| Tooling | Convergence battery v1 scores | `k = 1` MISSED (CB-01). Not refuted on this battery. **Not** SUPPORTED. `docs/CONVERGENCE-BATTERY-v1-RESULTS.md` |
 
 Latest verified suite is recorded in the most recent review. **PASS ≠ SUPPORTED.**
 
@@ -32,7 +33,8 @@ The lab is separate from 4AllPass. No real credentials, production systems, or s
 
 - [docs/RESEARCH-METHOD.md](docs/RESEARCH-METHOD.md) — PASS vs hypothesis, cycle STOP, program-STOP, CI
 - [docs/CONVERGENCE-BATTERY-v1.md](docs/CONVERGENCE-BATTERY-v1.md) — program-STOP battery protocol
-- [docs/CONVERGENCE-ATTACK-CATALOG-v1.md](docs/CONVERGENCE-ATTACK-CATALOG-v1.md) — ten attacks; monitor-off frozen; not scored
+- [docs/CONVERGENCE-ATTACK-CATALOG-v1.md](docs/CONVERGENCE-ATTACK-CATALOG-v1.md) — ten attacks; monitor-off frozen
+- [docs/CONVERGENCE-BATTERY-v1-RESULTS.md](docs/CONVERGENCE-BATTERY-v1-RESULTS.md) — scores; `k = 1`; not SUPPORTED
 - [docs/PBT-ORACLE-v1.md](docs/PBT-ORACLE-v1.md) — Hypothesis contracts (not I9 default-deny)
 - [docs/THREAT-MODEL.md](docs/THREAT-MODEL.md)
 - [docs/OUT-OF-SCOPE-DEBT.md](docs/OUT-OF-SCOPE-DEBT.md)
