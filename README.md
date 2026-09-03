@@ -22,6 +22,7 @@ The original v0.2 specification remains frozen. Subsequent additive experiments 
 | Tooling | Program-STOP numbers, PBT oracles, CI | Not Experiment 04. See `docs/RESEARCH-METHOD.md` §3.1 and `docs/PBT-ORACLE-v1.md` |
 | Tooling | Convergence battery protocol + catalog v1 | Additive. Not Experiment 04. `docs/CONVERGENCE-BATTERY-v1.md`, `docs/CONVERGENCE-ATTACK-CATALOG-v1.md` |
 | Tooling | Convergence battery v1 scores | `k = 1` MISSED (CB-01). Not refuted on this battery. **Not** SUPPORTED. `docs/CONVERGENCE-BATTERY-v1-RESULTS.md` |
+| Tooling | Real-case transfer study v1 | External battery (Codex) against `cb2dc55`. RC-01–RC-05 are measured misses, not broken tests. `docs/REAL-CASE-TRANSFER-STUDY-v1.md` |
 
 Latest verified suite is recorded in the most recent review. **PASS ≠ SUPPORTED.**
 
@@ -35,6 +36,7 @@ The lab is separate from 4AllPass. No real credentials, production systems, or s
 - [docs/CONVERGENCE-BATTERY-v1.md](docs/CONVERGENCE-BATTERY-v1.md) — program-STOP battery protocol
 - [docs/CONVERGENCE-ATTACK-CATALOG-v1.md](docs/CONVERGENCE-ATTACK-CATALOG-v1.md) — ten attacks; monitor-off frozen
 - [docs/CONVERGENCE-BATTERY-v1-RESULTS.md](docs/CONVERGENCE-BATTERY-v1-RESULTS.md) — scores; `k = 1`; not SUPPORTED
+- [docs/REAL-CASE-TRANSFER-STUDY-v1.md](docs/REAL-CASE-TRANSFER-STUDY-v1.md) — real-case transfer mappings; RC-01–RC-05 are known gaps
 - [docs/PBT-ORACLE-v1.md](docs/PBT-ORACLE-v1.md) — Hypothesis contracts (not I9 default-deny)
 - [docs/THREAT-MODEL.md](docs/THREAT-MODEL.md)
 - [docs/OUT-OF-SCOPE-DEBT.md](docs/OUT-OF-SCOPE-DEBT.md)
