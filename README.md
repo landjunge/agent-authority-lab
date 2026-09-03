@@ -18,6 +18,7 @@ The original v0.2 specification remains frozen. Subsequent additive experiments 
 | Phase 1 repair | In-process `submit` lock + `INVALID_REQUEST` | `docs/PHASE1-SUBMIT-ATOMICITY.md` |
 | Phase 1 repair | FakeAdapter canonical path = repo key (T-19) | `docs/PHASE1-ADAPTER-IDENTITY.md` |
 | Phase 1 repair | Public `state()` is a snapshot; provenance frozen | `docs/PHASE1-STATE-ENCAPSULATION.md` |
+| Phase 1 repair | Workflow registry: capacity+reserve atomic; `finish()` is coordinator-only | `docs/PHASE1-WORKFLOW-LIFECYCLE-ATOMICITY.md` |
 | Tooling | Program-STOP numbers, PBT oracles, CI | Not Experiment 04. See `docs/RESEARCH-METHOD.md` §3.1 and `docs/PBT-ORACLE-v1.md` |
 
 Latest verified suite is recorded in the most recent review. **PASS ≠ SUPPORTED.**
