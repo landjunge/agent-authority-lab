@@ -14,8 +14,9 @@
 | Defect A red | `assert lab.tracked_workflows() <= 1` failed with `2 <= 1` (seam forced both past the first check) |
 | Defect B red | `assert set(lab._states) == set(lab._locks)` failed: states `{'wf-stale'}`, locks empty |
 | Defect A/B green | same tests, hooks reached, invariants hold |
+| Defect A hook site | `_capacity_seam` is inside `_admit`, after the first look, before insert. Splitting `_admit` without a re-check fails `tracked_workflows() <= 1` (red: `2 <= 1`). A seam that only sat in `submit` before `_admit` stayed green on that split. |
 | Suite twice | **170 passed / 0 failed** (165 prior + 5 this slice) |
-| Concurrency 100x | 100/100 ok — `tests/test_workflow_lifecycle_atomicity.py` + `tests/test_submit_atomicity.py` |
+| Concurrency 100x | 100/100 ok after moving the Race A seam into `_admit`; 100/100 ok on the first landing |
 | Defect D | not present — `state()` still locks known ids (Block A) |
 | `finish()` | documented as trusted coordinator API, not an agent action |
 

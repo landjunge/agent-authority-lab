@@ -89,11 +89,13 @@ class Lab:
             return {wid: e.lock for wid, e in self._entries.items()}
 
     def _capacity_seam(self, workflow_id: str) -> None:
-        """Test hook. After a negative capacity check, before reservation.
+        """Test hook. Inside `_admit`, after a negative first look, before reserve.
 
-        Production is a no-op. Tests assign a callable that barriers here so
-        both threads pass the check before either reserves. The admission
-        protocol must remain correct even when this hook stalls.
+        Production is a no-op. Called without `_table_lock` so a test barrier
+        cannot deadlock other ids. The authoritative reserve after this hook
+        must re-check capacity under `_table_lock` in the same section as the
+        insert. Tests assign a callable that barriers here so both threads
+        pass the look before either inserts.
         """
 
     def _after_lock_ref(self, workflow_id: str, lock: threading.Lock) -> None:
@@ -135,11 +137,18 @@ class Lab:
             )
 
     def _admit(self, workflow_id: str) -> _WorkflowEntry | None:
-        """Atomically return a live entry, reserve a new one, or reject at cap.
+        """Return a live entry, reserve a new one, or reject at cap.
 
-        Checking capacity, inserting the entry, and binding its lock are one
-        critical section under `_table_lock`.
+        First look may drop `_table_lock` so `_capacity_seam` can stall.
+        Capacity re-check, insert and lock bind are one section after the seam.
         """
+        with self._table_lock:
+            entry = self._entries.get(workflow_id)
+            if entry is not None:
+                return entry
+            if len(self._entries) >= self._max_tracked:
+                return None
+        self._capacity_seam(workflow_id)
         with self._table_lock:
             entry = self._entries.get(workflow_id)
             if entry is not None:
@@ -206,7 +215,6 @@ class Lab:
                     deny_reason=CAPACITY_EXCEEDED,
                     violated_invariants=[CAPACITY_EXCEEDED],
                 )
-            self._capacity_seam(req.workflow_id)
             entry = self._admit(req.workflow_id)
             if entry is None:
                 return Decision(
