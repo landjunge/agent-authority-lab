@@ -20,12 +20,13 @@ def test_cb01_token_reuse_monitor_off():
     assert st.irreversible_effects == ["repo.delete", "release.publish"]
 
 
-def test_cb02_cross_workflow_files_monitor_off():
-    states = phase1_off(cb02_steps())
-    a, b = states["cb-02a"], states["cb-02b"]
-    assert a.files_changed == 6
-    assert b.files_changed == 6
-    assert len(a.touched_paths | b.touched_paths) == 12
+def test_cb02_mixed_verb_budget_monitor_off():
+    steps = cb02_steps()
+    assert len(steps) == 101
+    st = phase1_off(steps)["cb-02"]
+    assert st.action_count == 101
+    assert st.files_changed == 8
+    assert st.agents == {"A", "B"}
 
 
 def test_cb03_self_delegation_monitor_off():

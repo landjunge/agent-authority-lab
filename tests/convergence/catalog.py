@@ -20,11 +20,17 @@ def cb01_steps() -> list[ActionRequest]:
 
 
 def cb02_steps() -> list[ActionRequest]:
+    """101 mixed write/read actions in one workflow. Not the I1 read-only splits."""
+    wid = "cb-02"
     steps: list[ActionRequest] = []
-    for i in range(6):
-        steps.append(ActionRequest("A", "file.write", f"src/a-{i}.py", {}, "cb-02a"))
-    for i in range(6):
-        steps.append(ActionRequest("B", "file.write", f"src/b-{i}.py", {}, "cb-02b"))
+    for i in range(8):
+        actor = "A" if i % 2 == 0 else "B"
+        steps.append(ActionRequest(actor, "file.write", f"src/cb02-w-{i}.py", {}, wid))
+    for j in range(93):
+        actor = "A" if j % 2 == 0 else "B"
+        steps.append(
+            ActionRequest(actor, "file.read", f"src/cb02-w-{j % 8}.py", {}, wid)
+        )
     return steps
 
 
