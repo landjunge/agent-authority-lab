@@ -27,5 +27,6 @@ No row here authorizes an experiment. `PLANNED` is unused unless a future spec i
 | OOS-017 | Aggregation inference | High | Single-bit encode only | Yes — many PUBLIC bits | Exp 03 one status field | Aggregation experiment | OPEN |
 | OOS-018 | Long-horizon state corruption | Medium–high | Short pytest workflows | Yes — drift over days | Slow-drift is I1 count, not months | Horizon lab | OPEN |
 | OOS-019 | I2 keys on the exact string `file.write`; other mutating verbs are not counted | High | Frozen I2 / `WRITE_ACTIONS`; PBT-P5 documents the gap on purpose | Yes — `file.create` (and any unlisted write verb) bypasses the unique-file cap | PBT-P5: `allowed == len(paths)` and `files_changed == 0` | Verb-complete I2 (not authorized) | OPEN |
+| OOS-020 | Approval-Token ist ein reiner Wahrheitswert; nicht an Actor, Aktion, Ressource, Workflow oder Generation gebunden (RC-03/04/05, CB-01) | High | Same core as OOS-015 (truthy flags; ACCEPTED MODEL LIMITATION) | Yes — I6 as bound capability | Real-case transfer RC-03/04/05; convergence CB-01 | Token binding (not authorized) | ACCEPTED MODEL LIMITATION |
 
 I8/I9 historical SPEC CONFLICT remains in ADR-001 and old reviews — not “resolved away.”
