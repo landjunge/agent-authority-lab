@@ -1,0 +1,89 @@
+Repo: agent-authority-lab. Mein eigenes defensives Forschungsprojekt.
+
+Ich habe ein ZIP mit einer fertigen, bereits durchgeführten Testbatterie:
+agent-authority-lab-realcase-tests-v1.zip
+
+Diese Batterie wurde extern durchgeführt (OpenAI Codex) gegen Commit
+cb2dc55a33672812f8730f28aecb7d42ec4bf927 und ist abgeschlossen. Deine Aufgabe
+ist NUR, sie unverändert ins Repo aufzunehmen. Nicht neu ausführen im Sinne von
+"verbessern", nicht ergänzen, nicht reparieren.
+
+Ich habe folgendes bereits selbst verifiziert:
+- sha256sum -c MANIFEST.sha256  →  5/5 OK
+- test_oracles.py               →  10 passed
+- test_security_expectations.py →  5 failed, 5 passed
+Diese Zahlen sind das erwartete Ergebnis. Wenn du andere bekommst, STOPP und
+melde es, statt etwas anzupassen.
+
+## Aufgabe
+
+1. Branch von aktuellem master. Prüfe vorher mit `git log --oneline -3`, dass
+   cb2dc55 enthalten ist. Falls nicht: STOPP.
+
+2. Lege die Dateien unter `tests/realcase/` ab, inhaltlich UNVERÄNDERT:
+   - REAL-CASE-CATALOG-v1.md
+   - catalog.py
+   - test_oracles.py
+   - test_security_expectations.py
+   - run_matrix.py
+   - results-v1.json
+   - MANIFEST.sha256
+   - README.md
+
+   Die Dokumentation (report-source.md) kommt nach
+   `docs/REAL-CASE-TRANSFER-STUDY-v1.md`.
+
+3. Passe NUR an, was für den Import nötig ist. `catalog.py` und
+   `test_oracles.py` importieren derzeit flach (`from catalog import ...`). Wenn
+   ein relativer Import nötig ist, damit pytest sie im Repo findet, ändere genau
+   diese Importzeilen — sonst nichts.
+
+   WICHTIG: Wenn du eine Datei aus MANIFEST.sha256 anfasst, wird ihr Hash
+   ungültig. Dokumentiere das dann explizit in README.md unter einer Überschrift
+   "Abweichung vom Original-Freeze": welche Datei, welche Zeile, warum. Erfinde
+   keine neuen Hashes und schreibe das Manifest nicht neu.
+
+4. Die fünf roten Tests in test_security_expectations.py (RC-01 bis RC-05)
+   müssen ROT BLEIBEN. Sie sind der Befund. Sie sind kein Fehler.
+
+   Konfiguriere pytest so, dass die Gesamtsuite trotzdem sinnvoll läuft — z.B.
+   ein eigener Marker `realcase_known_gap`, der in der normalen CI nicht
+   mitläuft, oder xfail(strict=True) mit klarem Grund im Docstring. Deine Wahl,
+   aber begründe sie mir.
+
+   Was du NICHT tust: die Tests löschen, ihre Assertions umdrehen, sie
+   überspringen ohne Begründung, oder den Monitor ändern damit sie grün werden.
+
+5. Ergänze `docs/OUT-OF-SCOPE-DEBT.md` um EINE Zeile für den Kernbefund:
+   "Approval-Token ist ein reiner Wahrheitswert; nicht an Actor, Aktion,
+   Ressource, Workflow oder Generation gebunden (RC-03/04/05, CB-01)."
+   Referenziere dabei OOS-015, das denselben Kern bereits als
+   ACCEPTED MODEL LIMITATION führt.
+
+6. Ergänze README.md des Repos um einen kurzen Verweis auf die Studie.
+
+## Harte Regeln
+
+- lab/ wird NICHT angefasst. Keine Zeile.
+- Bestehende Tests werden nicht geändert, nicht geschwächt, nicht gelöscht.
+- tests/test_phase1_properties.py bleibt unangetastet, besonders
+  test_write_verbs_other_than_file_write_are_counted (PBT-P5).
+- Keine gelöschten Dateien. `git diff --stat master..HEAD` muss am Ende
+  ZERO deletions zeigen.
+- Kein Merge nach master. Branch pushen, ich review selbst.
+
+## Hinweis zum Lesen der Testergebnisse
+
+conftest.py druckt am Ende einen eigenen Summary-Block, der die echte
+pytest-Zeile überdeckt. Die echte Zeile steht DARÜBER. Zitiere sie wörtlich.
+Basis vor deiner Änderung: 180 Tests.
+
+## Abschluss
+
+- volle Suite zweimal
+- sha256sum -c MANIFEST.sha256 und Ergebnis zeigen
+- test_oracles.py und test_security_expectations.py einzeln, Ergebnis zeigen
+- git diff --stat master..HEAD
+- Bericht: wörtliche Testzeilen, welche Importzeilen du angefasst hast (falls
+  überhaupt), wie du die fünf roten Tests eingebunden hast und warum
+- dann STOP

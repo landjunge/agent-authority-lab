@@ -37,6 +37,7 @@ The lab is separate from 4AllPass. No real credentials, production systems, or s
 - [docs/CONVERGENCE-ATTACK-CATALOG-v1.md](docs/CONVERGENCE-ATTACK-CATALOG-v1.md) — ten attacks; monitor-off frozen
 - [docs/CONVERGENCE-BATTERY-v1-RESULTS.md](docs/CONVERGENCE-BATTERY-v1-RESULTS.md) — scores; `k = 1`; not SUPPORTED
 - [docs/REAL-CASE-TRANSFER-STUDY-v1.md](docs/REAL-CASE-TRANSFER-STUDY-v1.md) — real-case transfer mappings; RC-01–RC-05 are known gaps
+- [docs/realcase/v1/README.md](docs/realcase/v1/README.md) — archived ZIP + import prompt
 - [docs/PBT-ORACLE-v1.md](docs/PBT-ORACLE-v1.md) — Hypothesis contracts (not I9 default-deny)
 - [docs/THREAT-MODEL.md](docs/THREAT-MODEL.md)
 - [docs/OUT-OF-SCOPE-DEBT.md](docs/OUT-OF-SCOPE-DEBT.md)
