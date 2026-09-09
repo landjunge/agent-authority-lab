@@ -4,6 +4,10 @@ Experimental security lab: can **deterministic workflow-level state and informat
 
 This is **not** a production system and **not** a proof of general agent safety.
 
+## License
+
+**Source-available — all rights reserved.** The repository is public for review, research discussion, and security evaluation, but new material may not be copied, modified, distributed, deployed, or sold without prior written permission. Historical revisions published before the license-change commit remain available under the MIT License that applied to them. See [LICENSE](LICENSE) for the exact boundary and terms.
+
 ## Status
 
 The original v0.2 specification remains frozen. Subsequent additive experiments are separately frozen and reviewed. They do not rewrite v0.2.
