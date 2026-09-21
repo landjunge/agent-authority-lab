@@ -30,6 +30,8 @@ Latest verified suite is recorded in the most recent review. **PASS ≠ SUPPORTE
 
 The lab is separate from 4AllPass. No real credentials, production systems, or secrets.
 
+Optional G3 producer: set `LAB_AUTHORITY_EVENTS=1` to append Authority Event Envelope JSONL (`authority.requested` / `allowed` / `denied`). Off under pytest unless that flag is set. Never writes a ThreadDesk database. Does not change ALLOW/DENY.
+
 ## Method (canonical)
 
 - [docs/RESEARCH-METHOD.md](docs/RESEARCH-METHOD.md) — PASS vs hypothesis, cycle STOP, program-STOP, CI
