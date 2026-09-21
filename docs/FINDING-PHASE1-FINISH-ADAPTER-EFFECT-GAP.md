@@ -19,7 +19,16 @@ delayed adapter operation can still mutate the repository afterwards.
 
 ## Deterministic reproduction
 
-`tests/test_finish_adapter_effect_atomicity_probe.py` replaces `Lab.submit` on
+The probe is **outside** the acceptance suite (`[tool.pytest.ini_options]
+testpaths = ["tests"]`). Default `pytest -q` does not collect it.
+
+Repro (explicit path; expected FAIL):
+
+```text
+pytest probes/test_finish_adapter_effect_atomicity_probe.py
+```
+
+`probes/test_finish_adapter_effect_atomicity_probe.py` replaces `Lab.submit` on
 one adapter instance with a wrapper that pauses after the real `submit()` has
 returned `ALLOW` and before `FakeAdapter.write()` receives that decision.
 Threading events force this order without sleeps:
@@ -40,7 +49,11 @@ FAILED test_no_adapter_effect_occurs_after_finish_returns
 assert "src/late.py" not in adapter.repo.files
 ```
 
-The failure is deterministic and was reproduced on `master` at `b35851f`.
+The failure is deterministic and was reproduced on `master` at `6765765`
+(G3 emit + License). It was first recorded against `b35851f`. `_emit_decision`
+already runs outside the workflow lock, so G3 did not shrink the window.
+
+Recorded as `OOS-021` in `docs/OUT-OF-SCOPE-DEBT.md`. Repair is not authorized.
 
 ## Security relevance
 
