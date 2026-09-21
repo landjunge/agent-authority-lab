@@ -38,6 +38,16 @@ from lab.provenance import record
 from lab.state import empty_state, predict_next
 
 
+def _emit_decision(req: ActionRequest, decision: Decision) -> None:
+    """Outside the workflow lock. Must never change the Decision."""
+    try:
+        from lab.authority_emit import emit_decision
+
+        emit_decision(req, decision)
+    except Exception:
+        return
+
+
 def validate_request(req: object) -> str | None:
     """Return INVALID_REQUEST if `req` is not a usable ActionRequest. Else None."""
     if not isinstance(req, ActionRequest):
@@ -203,32 +213,40 @@ class Lab:
 
     def submit(self, req: ActionRequest) -> Decision:
         if validate_request(req) is not None:
-            return Decision(
+            decision = Decision(
                 allow=False,
                 deny_reason=INVALID_REQUEST,
                 violated_invariants=[INVALID_REQUEST],
             )
+            _emit_decision(req, decision)
+            return decision
         while True:
             if self._at_capacity(req.workflow_id):
-                return Decision(
+                decision = Decision(
                     allow=False,
                     deny_reason=CAPACITY_EXCEEDED,
                     violated_invariants=[CAPACITY_EXCEEDED],
                 )
+                _emit_decision(req, decision)
+                return decision
             entry = self._admit(req.workflow_id)
             if entry is None:
-                return Decision(
+                decision = Decision(
                     allow=False,
                     deny_reason=CAPACITY_EXCEEDED,
                     violated_invariants=[CAPACITY_EXCEEDED],
                 )
+                _emit_decision(req, decision)
+                return decision
             self._after_lock_ref(req.workflow_id, entry.lock)
             with entry.lock:
                 if entry.retired:
                     # finish() unregistered this identity while we held only a
                     # reference. Retry against a clean generation — do not write.
                     continue
-                return self._submit_locked(entry, req)
+                decision = self._submit_locked(entry, req)
+            _emit_decision(req, decision)
+            return decision
 
     def _submit_locked(self, entry: _WorkflowEntry, req: ActionRequest) -> Decision:
         self._inside_submit_locked(req.workflow_id)
